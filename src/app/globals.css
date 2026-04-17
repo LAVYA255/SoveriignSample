@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-celestial-black: #0A0A0A;
+  --color-celestial-charcoal: #121212;
+  --color-celestial-surface: #181818;
+  --color-celestial-orange: #FF6A1A;
+  --color-celestial-orange-hover: #FF7F32;
+  --color-celestial-gold: #D4AF37;
+  --color-celestial-blue: #3A7BFF;
+  
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #0A0A0A;
+  --foreground: #EDEDED;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reusable UI Utilities */
+.glass-panel {
+  background: rgba(24, 24, 24, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #FFFFFF, #9CA3AF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(to right, #D4AF37, #FDE08B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
