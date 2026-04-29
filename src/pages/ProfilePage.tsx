@@ -4,9 +4,21 @@ import { useAuth } from "@/hooks/useAuth";
 import { trpc } from "@/providers/trpc";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const { data: wallet } = trpc.wallet.get.useQuery();
+  const { user, userData, supabaseId, isLoading: authLoading } = useAuth();
+  
+  const { data: wallet, isLoading: walletLoading } = trpc.wallet.get.useQuery(
+    { supabaseId: supabaseId! }, 
+    { enabled: !!supabaseId }
+  );
   const { data: summary } = trpc.investment.getPortfolioSummary.useQuery();
+
+  if (authLoading || (!!supabaseId && walletLoading)) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-orange-500">Loading Profile...</div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -15,6 +27,15 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  // Combine auth user with DB data
+  const profile = {
+    name: userData?.username || user.displayName || "User",
+    email: user.email,
+    avatar: user.photoURL,
+    role: userData?.role || "user",
+    joinedAt: userData?.created_at || userData?.createdAt,
+  };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -25,22 +46,22 @@ export default function ProfilePage() {
         className="glass-card rounded-2xl p-8 text-center"
       >
         <div className="w-24 h-24 rounded-full bg-orange-600/20 flex items-center justify-center mx-auto mb-4">
-          {user.avatar ? (
-            <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+          {profile.avatar ? (
+            <img src={profile.avatar} alt="" className="w-full h-full rounded-full object-cover" />
           ) : (
             <UserCircle size={48} className="text-orange-400" />
           )}
         </div>
-        <h2 className="text-2xl font-bold text-white">{user.name || "User"}</h2>
-        <p className="text-neutral-400 mt-1">{user.email || "No email"}</p>
+        <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
+        <p className="text-neutral-400 mt-1">{profile.email || "No email"}</p>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${user.role === "admin" ? "bg-orange-500/15 text-orange-400 border border-orange-500/20" : "bg-white/5 text-neutral-400"}`}>
-            {user.role}
+          <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${profile.role === "admin" ? "bg-orange-500/15 text-orange-400 border border-orange-500/20" : "bg-white/5 text-neutral-400"}`}>
+            {profile.role}
           </span>
         </div>
         <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-neutral-500">
           <Calendar size={12} />
-          <span>Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-IN") : "-"}</span>
+          <span>Joined {profile.joinedAt ? new Date(profile.joinedAt).toLocaleDateString("en-IN") : "Recently"}</span>
         </div>
       </motion.div>
 

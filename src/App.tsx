@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/layout/Layout";
 import Intro from "./pages/Intro";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
+import SignIn from "./pages/SignIn";
 import NotFound from "./pages/NotFound";
 import RealEstatePage from "./pages/RealEstatePage";
 import InvoiceFinancingPage from "./pages/InvoiceFinancingPage";
@@ -13,47 +13,14 @@ import LiveMarketPage from "./pages/LiveMarketPage";
 import PortfolioPage from "./pages/PortfolioPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import ProfilePage from "./pages/ProfilePage";
-import AdminPage from "./pages/AdminPage";
+import AdminPanel from "./pages/AdminPanel";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Layout>{children}</Layout>;
-}
-
-function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user?.role !== "admin") return <Navigate to="/dashboard" replace />;
-
-  return <Layout>{children}</Layout>;
-}
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<SignIn />} />
       <Route path="/" element={<Intro />} />
       <Route
         path="/dashboard"
@@ -130,9 +97,9 @@ export default function App() {
       <Route
         path="/admin"
         element={
-          <AdminRoute>
-            <AdminPage />
-          </AdminRoute>
+          <ProtectedRoute requireAdmin={true}>
+            <AdminPanel />
+          </ProtectedRoute>
         }
       />
       <Route path="*" element={<NotFound />} />

@@ -1,100 +1,55 @@
 import { z } from "zod";
 import { createRouter, authedQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { wallets, transactions } from "@db/schema";
-import { eq, sql } from "drizzle-orm";
+
+import { env } from "./lib/env";
+const BACKEND_URL = env.backendUrl;
 
 export const walletRouter = createRouter({
-  get: authedQuery.query(async ({ ctx }) => {
-    const db = getDb();
-    let wallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, ctx.user.id),
-    });
-
-    if (!wallet) {
-      await db.insert(wallets).values({
-        userId: ctx.user.id,
-        balance: "100000",
+  get: authedQuery
+    .input(z.object({ supabaseId: z.string() }))
+    .query(async ({ input }) => {
+      const response = await fetch(`${BACKEND_URL}/api/wallet/${input.supabaseId}`);
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      
+      return {
+        userId: input.supabaseId,
+        balance: result.data,
         totalInvested: "0",
         totalReturns: "0",
         claimedBalance: "0",
-      });
-      wallet = await db.query.wallets.findFirst({
-        where: eq(wallets.userId, ctx.user.id),
-      });
-    }
-
-    return wallet;
-  }),
-
-  claimBalance: authedQuery
-    .input(z.object({ amount: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      const wallet = await db.query.wallets.findFirst({
-        where: eq(wallets.userId, ctx.user.id),
-      });
-      if (!wallet) throw new Error("Wallet not found");
-
-      await db
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} + ${input.amount}`,
-        })
-        .where(eq(wallets.userId, ctx.user.id));
-
-      await db.insert(transactions).values({
-        userId: ctx.user.id,
-        type: "deposit",
-        amount: input.amount,
-        status: "completed",
-        description: `Claimed balance: Rs.${Number(input.amount).toLocaleString("en-IN")}`,
-      });
-
-      return { success: true };
+      };
     }),
 
+  claimBalance: authedQuery
+    .input(z.object({ amount: z.string().optional(), supabaseId: z.string() }))
+    .mutation(async ({ input }) => {
+      const response = await fetch(`${BACKEND_URL}/api/wallet/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: input.supabaseId })
+      });
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      return { success: true, balance: result.data };
+    }),
+
+  // Keep these stubs if frontend relies on them, but they are now handled by backend engines
   updateAfterInvestment: authedQuery
     .input(z.object({ amount: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      await db
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} - ${input.amount}`,
-          totalInvested: sql`${wallets.totalInvested} + ${input.amount}`,
-        })
-        .where(eq(wallets.userId, ctx.user.id));
+    .mutation(async () => {
       return { success: true };
     }),
 
   updateAfterReturn: authedQuery
     .input(z.object({ amount: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      await db
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} + ${input.amount}`,
-          totalReturns: sql`${wallets.totalReturns} + ${input.amount}`,
-        })
-        .where(eq(wallets.userId, ctx.user.id));
+    .mutation(async () => {
       return { success: true };
     }),
 
   updateAfterExit: authedQuery
     .input(z.object({ investmentAmount: z.string(), exitAmount: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      const profit = Number(input.exitAmount) - Number(input.investmentAmount);
-      await db
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} + ${input.exitAmount}`,
-          totalInvested: sql`${wallets.totalInvested} - ${input.investmentAmount}`,
-          totalReturns: sql`${wallets.totalReturns} + ${profit > 0 ? profit : 0}`,
-        })
-        .where(eq(wallets.userId, ctx.user.id));
+    .mutation(async () => {
       return { success: true };
     }),
 });

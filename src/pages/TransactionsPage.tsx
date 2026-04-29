@@ -91,7 +91,7 @@ export default function TransactionsPage() {
                   </tr>
                 ))
               ) : transactions && transactions.length > 0 ? (
-                transactions.map((tx, i) => {
+                transactions.map((tx: any, i: number) => {
                   const config = txTypeIcons[tx.type] || txTypeIcons.fee;
                   const Icon = config.icon;
                   return (

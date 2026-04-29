@@ -1,63 +1,34 @@
 import { z } from "zod";
-import { createRouter, authedQuery, adminQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { transactions, users, assets, assetCategories } from "@db/schema";
+import { createRouter, authedQuery } from "./middleware";
 
-
-type TransactionWithRelations = typeof transactions.$inferSelect & {
-  user?: typeof users.$inferSelect;
-  asset?: typeof assets.$inferSelect & { category?: typeof assetCategories.$inferSelect };
-};
+import { env } from "./lib/env";
+const BACKEND_URL = env.backendUrl;
 
 export const transactionRouter = createRouter({
   list: authedQuery
     .input(
       z.object({
-        type: z.enum(["claim", "investment", "return", "exit", "withdrawal", "deposit", "fee"]).optional(),
-        status: z.enum(["pending", "completed", "failed", "cancelled"]).optional(),
-        limit: z.number().default(50),
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+        type: z.enum(["deposit", "withdrawal", "investment", "return", "exit", "claim"]).optional(),
       }).optional()
     )
-    .query(async ({ ctx: _ctx, input: _input }) => {
-      return [] as unknown as TransactionWithRelations[];
+    .query(async ({ ctx, input }) => {
+      const response = await fetch(`${BACKEND_URL}/api/transactions/${ctx.user.id}`);
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     }),
 
-  create: authedQuery
-    .input(
-      z.object({
-        type: z.enum(["claim", "investment", "return", "exit", "withdrawal", "deposit", "fee"]),
-        amount: z.string(),
-        assetId: z.number().optional(),
-        investmentId: z.number().optional(),
-        description: z.string().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      const [tx] = await db.insert(transactions).values({
-        userId: ctx.user.id,
-        ...input,
-        status: "completed",
-      });
-      return tx;
-    }),
+  getSummary: authedQuery.query(async () => {
+    return { deposits: 0, withdrawals: 0, investments: 0, returns: 0 };
+  }),
 
-  // Admin
-  listAll: adminQuery
-    .input(
-      z.object({
-        limit: z.number().default(100),
-      }).optional()
-    )
-    .query(async ({ input: _input }) => {
-      return [] as unknown as TransactionWithRelations[];
-    }),
-
-  getStats: adminQuery.query(async () => {
+  getStats: authedQuery.query(async () => {
     return {
       totalTransactions: 0,
       totalVolume: 0,
-      byType: [],
+      byType: []
     };
   }),
 });

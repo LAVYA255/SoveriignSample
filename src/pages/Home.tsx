@@ -15,6 +15,7 @@ import { trpc } from "@/providers/trpc";
 import StatCard from "@/components/shared/StatCard";
 import { AssetCard } from "@/components/AssetCard";
 import { Link } from "react-router";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AreaChart,
   Area,
@@ -46,12 +47,37 @@ const allocationData = [
 ];
 
 export default function Home() {
-  const { data: wallet } = trpc.wallet.get.useQuery();
+  const { supabaseId, isLoading: authLoading } = useAuth();
+  const { data: wallet, isLoading: walletLoading } = trpc.wallet.get.useQuery(
+    { supabaseId: supabaseId! }, 
+    { enabled: !!supabaseId }
+  );
   const { data: portfolioSummary } = trpc.investment.getPortfolioSummary.useQuery();
   const { data: recentTx } = trpc.transaction.list.useQuery({ limit: 5 });
   const { data: assets } = trpc.asset.list.useQuery({ status: "active" });
 
-  const balance = Number(wallet?.balance || 100000);
+  const utils = trpc.useUtils();
+  const claimMutation = trpc.wallet.claimBalance.useMutation();
+
+  const handleClaim = async () => {
+    if (!supabaseId) return;
+    try {
+      await claimMutation.mutateAsync({ supabaseId });
+      utils.wallet.get.invalidate();
+    } catch (error) {
+      console.error("Failed to claim balance", error);
+    }
+  };
+
+  if (authLoading || (!!supabaseId && walletLoading)) {
+    return (
+      <div className="flex items-center justify-center py-20 bg-[#0A0A0A]">
+        <div className="text-orange-500">Loading Dashboard...</div>
+      </div>
+    );
+  }
+
+  const balance = Number(wallet?.balance || 0);
   const totalInvested = Number(portfolioSummary?.totalInvested || 0);
   const totalReturns = Number(portfolioSummary?.totalReturns || 0);
   const portfolioValue = balance + totalInvested + totalReturns;
@@ -235,9 +261,11 @@ export default function Home() {
             ].map((action) => (
               <motion.button
                 key={action.label}
+                onClick={action.label === "Claim Balance" ? handleClaim : undefined}
+                disabled={action.label === "Claim Balance" && claimMutation.isPending}
                 whileHover={{ scale: 1.01, x: 4 }}
                 whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors text-left group"
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.04] transition-colors text-left group disabled:opacity-50"
               >
                 <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
                   <action.icon size={18} />
@@ -293,7 +321,7 @@ export default function Home() {
           <h3 className="text-sm font-semibold text-white mb-4">Recent Activity</h3>
           <div className="space-y-3">
             {recentTx && recentTx.length > 0 ? (
-              recentTx.map((tx, i) => (
+              recentTx.map((tx: any, i: number) => (
                 <div key={tx.id || i} className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center`}>
                     {txTypeIcons[tx.type] || <Activity size={14} className="text-neutral-400" />}
@@ -329,7 +357,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {assets?.slice(0, 3)?.map((asset, i) => (
+          {assets?.slice(0, 3)?.map((asset: any, i: number) => (
             <AssetCard key={asset.id} asset={asset} idx={i} />
           ))}
           {!assets && (

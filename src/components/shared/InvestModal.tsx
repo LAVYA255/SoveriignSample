@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle, ArrowRight, TrendingUp, Calculator } from "lucide-react";
 import { trpc } from "@/providers/trpc";
@@ -15,6 +16,7 @@ export default function InvestModal({ asset, onClose }: InvestModalProps) {
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
+  const { supabaseId, isLoading: authLoading } = useAuth();
   const createInvestment = trpc.investment.create.useMutation({
     onSuccess: () => {
       utils.investment.list.invalidate();
@@ -25,7 +27,10 @@ export default function InvestModal({ asset, onClose }: InvestModalProps) {
     onError: (err) => setError(err.message),
   });
 
-  const walletQuery = trpc.wallet.get.useQuery();
+  const walletQuery = trpc.wallet.get.useQuery(
+    { supabaseId: supabaseId! }, 
+    { enabled: !!supabaseId }
+  );
   const balance = Number(walletQuery.data?.balance || 0);
   const minInv = Number(asset.minInvestment);
   const numericAmount = Number(amount);
@@ -49,7 +54,7 @@ export default function InvestModal({ asset, onClose }: InvestModalProps) {
   };
 
   const handleConfirm = () => {
-    createInvestment.mutate({ assetId: asset.id, amount: amount });
+    createInvestment.mutate({ assetId: String(asset.id), amount: amount });
   };
 
   return (
@@ -79,7 +84,11 @@ export default function InvestModal({ asset, onClose }: InvestModalProps) {
         </div>
 
         <AnimatePresence mode="wait">
-          {step === "input" && (
+          {authLoading || (!!supabaseId && walletQuery.isLoading) ? (
+            <div className="flex justify-center p-8 text-neutral-500">
+              Loading wallet...
+            </div>
+          ) : step === "input" && (
             <motion.div
               key="input"
               initial={{ opacity: 0, x: 20 }}

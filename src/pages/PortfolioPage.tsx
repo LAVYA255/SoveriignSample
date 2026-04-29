@@ -34,13 +34,13 @@ export default function PortfolioPage() {
     onSuccess: () => window.location.reload(),
   });
 
-  const filteredInvestments = summary?.investments.filter((inv) => {
+  const filteredInvestments = (summary?.investments as any[])?.filter((inv: any) => {
     if (activeTab === "active") return inv.status === "active";
     if (activeTab === "exited") return inv.status === "exited";
     return true;
   });
 
-  const allocationData = summary?.byCategory.map((cat, i) => ({
+  const allocationData = (summary?.byCategory as any[])?.map((cat: any, i: number) => ({
     name: cat.name,
     value: cat.value,
     color: COLORS[i % COLORS.length],

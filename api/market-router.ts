@@ -1,88 +1,64 @@
 import { z } from "zod";
-import { createRouter, authedQuery, publicQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { marketListings, transactions, users, assets, assetCategories } from "@db/schema";
-import { eq, and } from "drizzle-orm";
-import { MOCK_MARKET_LISTINGS } from "./mockData";
+import { createRouter, publicQuery, authedQuery } from "./middleware";
 
-type MarketListingWithRelations = typeof marketListings.$inferSelect & {
-  seller?: typeof users.$inferSelect;
-  asset?: typeof assets.$inferSelect & { category?: typeof assetCategories.$inferSelect };
-};
+import { env } from "./lib/env";
+const BACKEND_URL = env.backendUrl;
 
 export const marketRouter = createRouter({
-  list: publicQuery.query(async () => {
-    return MOCK_MARKET_LISTINGS as unknown as MarketListingWithRelations[];
-  }),
+  list: publicQuery
+    .input(z.object({ assetId: z.string().optional() }).optional())
+    .query(async ({ input }) => {
+      let url = `${BACKEND_URL}/api/market`;
+      if (input?.assetId) {
+        url += `?assetId=${input.assetId}`;
+      }
+      const response = await fetch(url);
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    }),
 
   createListing: authedQuery
     .input(
       z.object({
-        assetId: z.number(),
-        investmentId: z.number(),
-        originalAmount: z.string(),
-        listingPrice: z.string(),
-        discountRate: z.string().default("0"),
-        accruedValue: z.string().default("0"),
-        expiryDays: z.number().default(30),
+        investmentId: z.string(),
+        sellAmount: z.string(),
+        discountRate: z.number(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      const [listing] = await db.insert(marketListings).values({
-        sellerId: ctx.user.id,
-        assetId: input.assetId,
-        investmentId: input.investmentId,
-        originalAmount: input.originalAmount,
-        listingPrice: input.listingPrice,
-        discountRate: input.discountRate,
-        accruedValue: input.accruedValue,
-        status: "active",
-        expiryDate: new Date(Date.now() + input.expiryDays * 24 * 60 * 60 * 1000),
+      const response = await fetch(`${BACKEND_URL}/api/market/list`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sellerId: ctx.user.id,
+          investmentId: input.investmentId,
+          sellAmount: input.sellAmount,
+          discountRate: input.discountRate
+        })
       });
-      return { success: true, listingId: Number(listing.insertId) };
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      return { success: true, listingId: result.data.id };
     }),
 
   buy: authedQuery
-    .input(z.object({ listingId: z.number() }))
+    .input(z.object({ listingId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      const listing = await db.query.marketListings.findFirst({
-        where: eq(marketListings.id, input.listingId),
+      const response = await fetch(`${BACKEND_URL}/api/market/buy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          buyerId: ctx.user.id,
+          listingId: input.listingId
+        })
       });
-      if (!listing) throw new Error("Listing not found");
-      if (listing.sellerId === ctx.user.id) throw new Error("Cannot buy your own listing");
-
-      await db
-        .update(marketListings)
-        .set({ status: "sold" })
-        .where(eq(marketListings.id, input.listingId));
-
-      await db.insert(transactions).values({
-        userId: ctx.user.id,
-        type: "investment",
-        amount: listing.listingPrice,
-        assetId: listing.assetId,
-        status: "completed",
-        description: `Bought market listing for Rs.${Number(listing.listingPrice).toLocaleString("en-IN")}`,
-      });
-
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
       return { success: true };
     }),
 
-  cancel: authedQuery
-    .input(z.object({ listingId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = getDb();
-      await db
-        .update(marketListings)
-        .set({ status: "cancelled" })
-        .where(
-          and(
-            eq(marketListings.id, input.listingId),
-            eq(marketListings.sellerId, ctx.user.id)
-          )
-        );
-      return { success: true };
-    }),
+  // Stubs for remaining functions
+  getListingsByAsset: publicQuery.input(z.object({ assetId: z.number() })).query(async () => []),
+  getStats: publicQuery.query(async () => ({ totalVolume24h: 0, activeListings: 0, avgDiscount: 0 }))
 });

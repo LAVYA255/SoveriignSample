@@ -44,10 +44,10 @@ export default function RealEstatePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total Assets", value: assets?.length || 0 },
-          { label: "Active", value: assets?.filter((a) => a.status === "active").length || 0 },
-          { label: "Avg ROI", value: assets?.length ? (assets.reduce((s, a) => s + Number(a.expectedRoi), 0) / assets.length).toFixed(1) + "%" : "0%" },
-          { label: "Total Value", value: "Rs." + (assets?.reduce((s, a) => s + Number(a.totalValue), 0).toLocaleString("en-IN") || "0") },
-        ].map((stat, i) => (
+          { label: "Active", value: (assets as any[])?.filter((a: any) => a.status === "active").length || 0 },
+          { label: "Avg ROI", value: assets?.length ? ((assets as any[]).reduce((s: number, a: any) => s + Number(a.expectedRoi), 0) / assets.length).toFixed(1) + "%" : "0%" },
+          { label: "Total Value", value: "Rs." + ((assets as any[])?.reduce((s: number, a: any) => s + Number(a.totalValue), 0).toLocaleString("en-IN") || "0") },
+        ].map((stat: any, i: number) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 10 }}
@@ -70,7 +70,7 @@ export default function RealEstatePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {assets?.map((asset, i) => (
+          {assets?.map((asset: any, i: number) => (
             <AssetCard key={asset.id} asset={asset} delay={i * 0.1} />
           ))}
         </div>

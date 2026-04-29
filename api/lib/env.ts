@@ -16,4 +16,7 @@ export const env = {
   kimiAuthUrl: required("KIMI_AUTH_URL"),
   kimiOpenUrl: required("KIMI_OPEN_URL"),
   ownerUnionId: process.env.OWNER_UNION_ID ?? "",
+  backendUrl: process.env.VITE_BACKEND_URL || "http://localhost:3001",
 };
+
+console.log('[env.ts] BACKEND_URL:', env.backendUrl);

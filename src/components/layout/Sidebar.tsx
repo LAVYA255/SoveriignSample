@@ -32,10 +32,10 @@ const adminItem = { path: "/admin", label: "Admin", icon: ShieldCheck };
 
 export default function Sidebar() {
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, userData, logout, isAuthenticated } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = userData?.role === "admin";
 
   return (
     <motion.aside
@@ -146,7 +146,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
             <div className="w-8 h-8 rounded-full bg-orange-600/20 flex items-center justify-center shrink-0">
               <span className="text-xs font-bold text-orange-400">
-                {user.name?.charAt(0) || "U"}
+                {(userData?.username || user.displayName || "U").charAt(0)}
               </span>
             </div>
             <AnimatePresence>
@@ -157,7 +157,7 @@ export default function Sidebar() {
                   exit={{ opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <p className="text-sm font-medium text-white truncate">{user.name || "User"}</p>
+                  <p className="text-sm font-medium text-white truncate">{userData?.username || user.displayName || "User"}</p>
                   <p className="text-xs text-neutral-500 truncate">{user.email || "No email"}</p>
                 </motion.div>
               )}

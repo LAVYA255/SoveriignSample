@@ -1,71 +1,43 @@
 import { z } from "zod";
 import { createRouter, adminQuery } from "./middleware";
-import { getDb } from "./queries/connection";
-import { investments, transactions, feedback } from "@db/schema";
-import { eq } from "drizzle-orm";
 
+import { env } from "./lib/env";
+const BACKEND_URL = env.backendUrl;
 
 export const adminRouter = createRouter({
   getDashboardStats: adminQuery.query(async () => {
-    return {
-      totalUsers: 5,
-      totalAssets: 12,
-      totalInvestments: 20,
-      totalTransactions: 45,
-      totalAum: 5000000,
-      totalInvested: 2500000,
-      totalReturns: 150000,
-      activeAssetCount: 8,
-    };
+    const response = await fetch(`${BACKEND_URL}/api/admin/stats`);
+    const result = await response.json() as any;
+    if (!result.success) throw new Error(result.error);
+    return result.data;
   }),
 
   listUsers: adminQuery
-    .input(z.object({ limit: z.number().default(50) }).optional())
-    .query(async ({ input: _input }) => {
-      return [];
+    .input(z.object({ limit: z.number().optional() }).optional())
+    .query(async () => {
+      const response = await fetch(`${BACKEND_URL}/api/admin/users`);
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     }),
 
-  listFeedback: adminQuery
-    .input(z.object({ limit: z.number().default(50) }).optional())
-    .query(async ({ input: _input }) => {
-      return [];
-    }),
+  getAllUsers: adminQuery.query(async () => {
+    const response = await fetch(`${BACKEND_URL}/api/admin/users`);
+    const result = await response.json() as any;
+    if (!result.success) throw new Error(result.error);
+    return result.data;
+  }),
 
-  updateFeedbackStatus: adminQuery
-    .input(z.object({ id: z.number(), status: z.enum(["open", "in_progress", "resolved", "closed"]) }))
+  creditWallet: adminQuery
+    .input(z.object({ userId: z.string(), amount: z.number() }))
     .mutation(async ({ input }) => {
-      const db = getDb();
-      await db.update(feedback).set({ status: input.status }).where(eq(feedback.id, input.id));
-      return { success: true };
-    }),
-
-  triggerReturn: adminQuery
-    .input(z.object({ investmentId: z.number(), returnAmount: z.string() }))
-    .mutation(async ({ input }) => {
-      const db = getDb();
-      const investment = await db.query.investments.findFirst({
-        where: eq(investments.id, input.investmentId),
+      const response = await fetch(`${BACKEND_URL}/api/admin/wallet/credit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input)
       });
-      if (!investment) throw new Error("Investment not found");
-
-      await db
-        .update(investments)
-        .set({
-          status: "completed",
-          actualReturn: input.returnAmount,
-        })
-        .where(eq(investments.id, input.investmentId));
-
-      await db.insert(transactions).values({
-        userId: investment.userId,
-        type: "return",
-        amount: input.returnAmount,
-        assetId: investment.assetId,
-        investmentId: investment.id,
-        status: "completed",
-        description: `Return on investment: Rs.${Number(input.returnAmount).toLocaleString("en-IN")}`,
-      });
-
-      return { success: true };
-    }),
+      const result = await response.json() as any;
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    })
 });

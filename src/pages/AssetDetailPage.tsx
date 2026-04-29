@@ -59,27 +59,28 @@ export default function AssetDetailPage() {
     );
   }
 
-  const roi = Number(asset.expectedRoi);
-  const progress = Math.min(Number(asset.fundingProgress), 100);
-  const funded = Number(asset.fundedAmount);
-  const total = Number(asset.totalValue);
-  const minInv = Number(asset.minInvestment);
+  const a = asset as any;
+  const roi = Number(a.expectedRoi);
+  const progress = Math.min(Number(a.fundingProgress), 100);
+  const funded = Number(a.fundedAmount);
+  const total = Number(a.totalValue);
+  const minInv = Number(a.minInvestment);
 
   const riskConfig = {
     low: { color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
     moderate: { color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" },
     high: { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" },
   } as const;
-  const risk = riskConfig[asset.riskLevel as keyof typeof riskConfig] || riskConfig.moderate;
+  const risk = riskConfig[a.riskLevel as keyof typeof riskConfig] || riskConfig.moderate;
 
   const liquidityIcons = {
     locked: Lock,
     tradable: ArrowRightLeft,
     flexible: Unlock,
   };
-  const LiquidityIcon = liquidityIcons[asset.liquidityType as keyof typeof liquidityIcons] || Lock;
+  const LiquidityIcon = liquidityIcons[a.liquidityType as keyof typeof liquidityIcons] || Lock;
 
-  const perfData = asset.performance?.map((p: { date: Date | string; navValue: string | number; yieldAccrued: string | number }) => ({
+  const perfData = a.performance?.map((p: { date: Date | string; navValue: string | number; yieldAccrued: string | number }) => ({
     date: new Date(p.date).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
     nav: Number(p.navValue),
     yield: Number(p.yieldAccrued),
@@ -104,23 +105,23 @@ export default function AssetDetailPage() {
         animate={{ opacity: 1, y: 0 }}
         className="relative rounded-2xl overflow-hidden"
       >
-        <img src={asset.image || "/assets/re-1.jpg"} alt={asset.name} className="w-full h-64 object-cover" />
+        <img src={a.image || "/assets/re-1.jpg"} alt={a.name} className="w-full h-64 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2">
-          <RiskBadge risk={asset.riskLevel} />
+          <RiskBadge risk={a.riskLevel} />
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-6">
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 backdrop-blur-sm text-white border border-white/10 flex items-center gap-1">
                 <LiquidityIcon size={12} />
-                {asset.liquidityType.charAt(0).toUpperCase() + asset.liquidityType.slice(1)}
+                {a.liquidityType.charAt(0).toUpperCase() + a.liquidityType.slice(1)}
               </span>
             </div>
-          <h1 className="text-3xl font-bold text-white">{asset.name}</h1>
-          {asset.location && (
+          <h1 className="text-3xl font-bold text-white">{a.name}</h1>
+          {a.location && (
             <div className="flex items-center gap-1 mt-1">
               <MapPin size={14} className="text-neutral-400" />
-              <span className="text-sm text-neutral-400">{asset.location}</span>
+              <span className="text-sm text-neutral-400">{a.location}</span>
             </div>
           )}
         </div>
@@ -139,7 +140,7 @@ export default function AssetDetailPage() {
             {[
               { label: "Expected ROI", value: `${roi}%`, icon: TrendingUp, color: "text-orange-400" },
               { label: "Total Value", value: `Rs.${total.toLocaleString("en-IN")}`, icon: DollarSign, color: "text-white" },
-              { label: "Duration", value: `${asset.duration} ${asset.durationUnit}`, icon: Clock, color: "text-blue-400" },
+              { label: "Duration", value: `${a.duration} ${a.durationUnit}`, icon: Clock, color: "text-blue-400" },
               { label: "Min Investment", value: `Rs.${minInv.toLocaleString("en-IN")}`, icon: BarChart3, color: "text-emerald-400" },
             ].map((stat) => (
               <div key={stat.label} className="glass-card rounded-xl p-4">
@@ -160,7 +161,7 @@ export default function AssetDetailPage() {
             className="glass-card rounded-xl p-5"
           >
             <h3 className="text-sm font-semibold text-white mb-3">Overview</h3>
-            <p className="text-sm text-neutral-400 leading-relaxed">{asset.description || "No description available."}</p>
+            <p className="text-sm text-neutral-400 leading-relaxed">{a.description || "No description available."}</p>
           </motion.div>
 
           {/* Performance Chart */}
@@ -202,8 +203,8 @@ export default function AssetDetailPage() {
           >
             <h3 className="text-sm font-semibold text-white mb-3">Documents</h3>
             <div className="space-y-2">
-              {asset.documents && Array.isArray(asset.documents) && asset.documents.length > 0 ? (
-                asset.documents.map((doc: string, idx: number) => (
+              {a.documents && Array.isArray(a.documents) && a.documents.length > 0 ? (
+                a.documents.map((doc: string, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-colors cursor-pointer">
                     <FileText size={16} className="text-orange-400" />
                     <span className="text-sm text-white">{doc}</span>
@@ -260,11 +261,11 @@ export default function AssetDetailPage() {
               </div>
               <div className="flex items-center justify-between py-2 border-b border-white/[0.06]">
                 <span className="text-sm text-neutral-400">Duration</span>
-                <span className="text-sm font-medium text-white">{asset.duration} {asset.durationUnit}</span>
+                <span className="text-sm font-medium text-white">{a.duration} {a.durationUnit}</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-neutral-400">Risk Level</span>
-                <span className={`text-sm font-medium capitalize ${risk.color}`}>{asset.riskLevel}</span>
+                <span className={`text-sm font-medium capitalize ${risk.color}`}>{a.riskLevel}</span>
               </div>
             </div>
 
@@ -278,7 +279,7 @@ export default function AssetDetailPage() {
         </motion.div>
       </div>
 
-      {showInvest && <InvestModal asset={asset} onClose={() => setShowInvest(false)} />}
+      {showInvest && <InvestModal asset={a} onClose={() => setShowInvest(false)} />}
     </div>
   );
 }
