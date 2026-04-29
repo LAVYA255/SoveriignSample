@@ -1,0 +1,145 @@
+export const MOCK_CATEGORIES = [
+  { id: 1, name: "Real Estate", slug: "real-estate", description: "Long-term stable real estate investments with locked liquidity", icon: "Building2" },
+  { id: 2, name: "Invoice Financing", slug: "invoice-financing", description: "Short-term invoice discounting with tradable liquidity", icon: "FileText" },
+  { id: 3, name: "Supply Chain Finance", slug: "supply-chain-finance", description: "Liquidity-based supply chain funding with flexible entry/exit", icon: "Truck" },
+];
+
+export const MOCK_ASSETS = [
+  {
+    id: 1,
+    name: "Cyber City Commercial Tower",
+    slug: "cyber-city-commercial-tower",
+    categoryId: 1,
+    description: "Premium Grade A commercial office space in the heart of Cyber City, Gurgaon. 12% annual yield with long-term lease agreements from Fortune 500 tenants. Stable cash flows with 5-year lock-in period.",
+    location: "Cyber City, Gurgaon",
+    image: "/assets/re-1.jpg",
+    totalValue: "50000000",
+    minInvestment: "500000",
+    expectedRoi: "12.50",
+    duration: 60,
+    durationUnit: "months",
+    riskLevel: "low",
+    status: "active",
+    liquidityType: "locked",
+    fundingProgress: "72.40",
+    fundedAmount: "36200000",
+    yieldGenerated: "4500000",
+    startDate: new Date("2024-01-15"),
+    endDate: new Date("2029-01-15"),
+    category: MOCK_CATEGORIES[0]
+  },
+  {
+    id: 2,
+    name: "Palm Grove Residences",
+    slug: "palm-grove-residences",
+    categoryId: 1,
+    description: "Luxury residential development in Whitefield, Bangalore. 180 premium apartments with world-class amenities. Expected 15% ROI through appreciation and rental income.",
+    location: "Whitefield, Bangalore",
+    image: "/assets/re-2.jpg",
+    totalValue: "75000000",
+    minInvestment: "1000000",
+    expectedRoi: "15.00",
+    duration: 48,
+    durationUnit: "months",
+    riskLevel: "moderate",
+    status: "active",
+    liquidityType: "locked",
+    fundingProgress: "45.80",
+    fundedAmount: "34350000",
+    yieldGenerated: "2200000",
+    startDate: new Date("2024-03-01"),
+    endDate: new Date("2028-03-01"),
+    category: MOCK_CATEGORIES[0]
+  },
+  {
+    id: 4,
+    name: "Invoice Pool - Manufacturing Batch A",
+    slug: "invoice-pool-manufacturing-a",
+    categoryId: 2,
+    description: "Portfolio of 45-day invoices from established manufacturing SMEs. Average discount rate of 8.5%. Diversified across 12 companies with strong credit profiles.",
+    location: "Multiple Locations",
+    image: "/assets/inv-1.jpg",
+    totalValue: "8000000",
+    minInvestment: "100000",
+    expectedRoi: "8.50",
+    duration: 45,
+    durationUnit: "days",
+    riskLevel: "low",
+    status: "active",
+    liquidityType: "tradable",
+    fundingProgress: "88.50",
+    fundedAmount: "7080000",
+    yieldGenerated: "320000",
+    startDate: new Date("2025-01-10"),
+    endDate: new Date("2025-02-24"),
+    category: MOCK_CATEGORIES[1]
+  },
+  {
+    id: 7,
+    name: "LogiChain Working Capital Pool",
+    slug: "logichain-working-capital-pool",
+    categoryId: 3,
+    description: "Pooled supply chain finance for 50+ logistics and warehousing SMEs. Daily yield accrual with instant redemption. Average 9.8% annualized return.",
+    location: "Pan India",
+    image: "/assets/scf-1.jpg",
+    totalValue: "20000000",
+    minInvestment: "50000",
+    expectedRoi: "9.80",
+    duration: 1,
+    durationUnit: "months",
+    riskLevel: "low",
+    status: "active",
+    liquidityType: "flexible",
+    fundingProgress: "78.90",
+    fundedAmount: "15780000",
+    yieldGenerated: "890000",
+    startDate: new Date("2024-06-01"),
+    endDate: new Date("2025-06-01"),
+    category: MOCK_CATEGORIES[2]
+  }
+];
+
+export const MOCK_INVESTMENTS = [
+  {
+    id: 1,
+    userId: 1,
+    assetId: 1,
+    amount: "500000",
+    expectedReturn: "562500",
+    actualReturn: "0",
+    roi: "12.50",
+    status: "active",
+    startDate: new Date("2024-01-15"),
+    endDate: new Date("2029-01-15"),
+    asset: MOCK_ASSETS[0]
+  },
+  {
+    id: 2,
+    userId: 1,
+    assetId: 4,
+    amount: "100000",
+    expectedReturn: "108500",
+    actualReturn: "0",
+    roi: "8.50",
+    status: "active",
+    startDate: new Date("2025-01-10"),
+    endDate: new Date("2025-02-24"),
+    asset: MOCK_ASSETS[2]
+  }
+];
+
+export const MOCK_MARKET_LISTINGS = [
+  {
+    id: 1,
+    sellerId: 1,
+    assetId: 4,
+    investmentId: 1,
+    originalAmount: "500000",
+    listingPrice: "485000",
+    discountRate: "3.00",
+    accruedValue: "512000",
+    status: "active",
+    expiryDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+    asset: MOCK_ASSETS[2]
+  }
+];

@@ -1,3 +1,0 @@
-node_modules/** filter=lfs diff=lfs merge=lfs -text
-.nest/** filter=lfs diff=lfs merge=lfs -text
-.next/** filter=lfs diff=lfs merge=lfs -text
