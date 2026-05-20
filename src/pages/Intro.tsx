@@ -60,7 +60,8 @@ const typeColor: Record<string, string> = { RE: "#FF5500", INV: "#8B5CF6", SCF: 
 const SECTIONS = ["hero", "protocol", "how-it-works", "numbers", "cta"] as const;
 const SECTION_ACCENTS = ["#FF5500", "#8B5CF6", "#22D3EE", "#FF5500", "#FF3300"] as const;
 const SECTION_NAV     = ["Home", "Assets", "Process", "Numbers", "Join"] as const;
-const PEEK_H = 80; // px of next card peeking from bottom
+const PEEK_H  = 80; // px of next card peeking from bottom (N+1)
+const PEEK_H2 = 40; // additional strip for the card behind (N+2)
 
 /* ── Peek label: visible at the top of a card when it peeks from the bottom ── */
 const PeekLabel = ({ label, accent, icon }: { label: string; accent: string; icon: string }) => (
@@ -105,6 +106,11 @@ const Intro = () => {
         el.style.transform    = `translateY(calc(100% - ${PEEK_H}px))`;
         el.style.opacity      = "1";
         el.style.zIndex       = "9";
+        el.style.pointerEvents = "none";
+      } else if (i === 2) {
+        el.style.transform    = `translateY(calc(100% - ${PEEK_H + PEEK_H2}px))`;
+        el.style.opacity      = "1";
+        el.style.zIndex       = "8";
         el.style.pointerEvents = "none";
       } else {
         el.style.transform    = "translateY(calc(100% + 30px))";
@@ -210,16 +216,24 @@ const Intro = () => {
         }
 
       } else if (offset === 1) {
-        /* ── NEW peek card (next in deck) ── */
+        /* ── Front peek card (N+1) ── */
         el.style.zIndex        = "9";
         el.style.pointerEvents = "none";
         el.style.transition    = `transform 0.6s ${decel}, opacity 0.45s ${decel}`;
         el.style.transform     = peekT;
         el.style.opacity       = "1";
 
+      } else if (offset === 2) {
+        /* ── Secondary peek card (N+2) ── */
+        el.style.zIndex        = "8";
+        el.style.pointerEvents = "none";
+        el.style.transition    = `transform 0.6s ${decel}, opacity 0.45s ${decel}`;
+        el.style.transform     = `translateY(calc(100% - ${PEEK_H + PEEK_H2}px))`;
+        el.style.opacity       = "1";
+
       } else if (offset < 0) {
         /* ── Cards before nextIdx — park above viewport ── */
-        el.style.zIndex        = "8";
+        el.style.zIndex        = "7";
         el.style.pointerEvents = "none";
         el.style.transition    = `transform 0.5s ${accel}, opacity 0.35s ease`;
         el.style.transform     = "translateY(-100%)";
