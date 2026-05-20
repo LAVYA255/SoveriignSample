@@ -59,7 +59,7 @@ export const BrandWordmark = ({ className = "", delay = 0 }: Props) => {
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
+            backgroundImage:
               "linear-gradient(90deg, transparent 0%, hsl(22 100% 60% / 0.0) 30%, hsl(22 100% 65% / 0.35) 50%, transparent 70%)",
             backgroundSize: "200% 100%",
             mixBlendMode: "screen",
