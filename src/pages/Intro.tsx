@@ -237,7 +237,7 @@ const Intro = () => {
 
     sectionIdxRef.current = nextIdx;
     setSectionIdx(nextIdx);
-    setTimeout(() => { transitioning.current = false; }, 800);
+    setTimeout(() => { transitioning.current = false; }, 1200);
   }, [triggerPanelAnim]);
 
   /* Hero entrance on mount */
@@ -248,12 +248,9 @@ const Intro = () => {
 
   /* Wheel */
   useEffect(() => {
-    let last = 0;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const now = Date.now();
-      if (now - last < 1000) return;
-      last = now;
+      if (transitioning.current) return;
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       goToSection(sectionIdxRef.current + (delta > 0 ? 1 : -1));
     };
