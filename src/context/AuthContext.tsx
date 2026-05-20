@@ -43,6 +43,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const upsertMutation = trpc.auth.upsertSync.useMutation();
 
   useEffect(() => {
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
       if (user && user.email) {

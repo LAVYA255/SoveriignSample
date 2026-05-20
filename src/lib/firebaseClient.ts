@@ -1,14 +1,4 @@
-import { initializeApp } from 'firebase/app';
-/*
-  CRITICAL SETUP REQUIRED:
-  1. Go to Firebase Console
-  2. Select the project
-  3. Go to Authentication -> Sign-in methods
-  4. Click Email/Password
-  5. Toggle "Enable"
-  6. Click Save
-  Email registration will NOT work until this is done.
-*/
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signOut as firebaseSignOut } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -20,9 +10,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const isConfigured = !!firebaseConfig.apiKey;
+
+const app = isConfigured
+  ? (getApps().length ? getApps()[0] : initializeApp(firebaseConfig))
+  : null;
+
+const auth = app ? getAuth(app) : null as unknown as ReturnType<typeof getAuth>;
 const googleProvider = new GoogleAuthProvider();
 
-export const signOut = () => firebaseSignOut(auth);
+export const signOut = () => (app ? firebaseSignOut(auth) : Promise.resolve());
 export { auth, googleProvider };
